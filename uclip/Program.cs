@@ -1,0 +1,97 @@
+﻿using System;
+using System.ComponentModel;
+using System.Reflection;
+using System.Windows.Forms;
+using Checkers;
+using Microsoft.Win32;
+
+namespace uclip
+{
+    internal class Program
+    {
+        public const string PROTOCOL_NAME = "uclip";
+        public const string REG_DEFAULT_VALUE = PROTOCOL_NAME + ":copy to clipboard";
+
+        [Command(Description = "Print formats of data in clipboard")]
+        public void List()
+        {
+            var dataObject = Clipboard.GetDataObject();
+            if (dataObject != null)
+            {
+                foreach (var format in dataObject.GetFormats())
+                    Console.WriteLine(format);
+            }
+        }
+
+        [Command(Description = "Add data to clipboard")]
+        public void Set(string text, string format = "Text")
+        {
+            Clipboard.SetData(format, text);
+        }
+
+        [Command(Description = "Add data to clipboard from url text")]
+        public void SetFromUri(string text, string format = "Text")
+        {
+//            text is like: %22say%20hi%20again%22
+            text = StringHelper.TrimStart(PROTOCOL_NAME + ":", text);
+            text = Uri.UnescapeDataString(text);
+            Clipboard.SetData(format, text);
+        }
+
+        [Command(Description = "Register uclip handler in registry, should be executed with admin rights")]
+        public void Register()
+        {
+            var exePath = Assembly.GetEntryAssembly().Location; ;
+            Registry.ClassesRoot.CreateSubKey(PROTOCOL_NAME);
+            using (var key = Registry.ClassesRoot.OpenSubKey(PROTOCOL_NAME, true))
+            {
+                Check.NotNull(key, $"Can not open registry subkey {PROTOCOL_NAME} for write");
+                key.SetValue("", REG_DEFAULT_VALUE);
+                key.SetValue("URL Protocol", "", RegistryValueKind.String);
+                var cmd = key.CreateSubKey("shell")?.CreateSubKey("open")?.CreateSubKey("command");
+                if (cmd != null)
+                {
+                    cmd.SetValue("", $"{exePath} setFromUri \"%1\"");
+                }
+                else
+                {
+                    throw new Exception("Can not create command handler in registry");
+                }
+            }
+        }
+
+        [Command(Description = "Unregister uclip handler in registry, should be executed with admin rights")]
+        public void UnRegister()
+        {
+        }
+
+        [Command(DefaultCommand = true, Description =
+            "Print clipboard content in specified format. If no format specified" +
+            " print text")]
+        public void Get(string format = null)
+        {
+            var res = format == null ? Clipboard.GetText() : Clipboard.GetData(format);
+            Console.WriteLine(res);
+        }
+
+        [STAThread]
+        public static void Main(string[] args)
+        {
+            CommandLine.Execute(new Program(), args);
+//            var txt = Clipboard.GetText();
+//            Console.WriteLine("Text: " + txt);
+//          
+            // todo if args length < 0
+//            var cmd = args[0].ToLower();
+//            if (cmd == "list")
+//                List
+
+
+//                lst = dataObject.GetFormats(false);
+//                Console.WriteLine("Formats false: " + string.Join(",", lst));
+//                lst = dataObject.GetFormats(true);
+//                Console.WriteLine("Formats true: " + string.Join(",", lst));
+        }
+    }
+
+}
