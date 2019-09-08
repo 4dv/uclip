@@ -49,10 +49,11 @@ namespace uclip
             foreach (var f in formats)
             {
                 if (f == format) continue;
-                newObj.SetData(f, obj.GetData(f));
+                var data = obj.GetData(f);
+                newObj.SetData(f, data);
             }
 
-            Clipboard.SetDataObject(newObj);
+            Clipboard.SetDataObject(newObj, true);
         }
 
         [Command(Description = "Add data to clipboard from url text")]
@@ -108,7 +109,14 @@ namespace uclip
             CommandLine.AddCommand(
                 "list - list all clipboard formats").WithHandler(Get);
 */
-            CommandLine.Execute(new Program(), args);
+            try
+            {
+                CommandLine.Execute(new Program(), args);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in program: " + e);
+            }
 //            var txt = Clipboard.GetText();
 //            Console.WriteLine("Text: " + txt);
 //          
