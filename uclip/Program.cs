@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows.Forms;
@@ -27,6 +28,31 @@ namespace uclip
         public void Set(string text, string format = "Text")
         {
             Clipboard.SetData(format, text);
+        }
+        
+        [Command(Description = "Clear data in clipboard, if format specified, clear only specified format")]
+        public void Clear(string format = null)
+        {
+            if(format == null)
+            {
+                Clipboard.Clear();
+                return;
+            }
+            
+            IDataObject obj = Clipboard.GetDataObject();
+            if (obj == null) return;
+            
+            DataObject newObj = new DataObject();
+//            newObj.SetData("Text", "Hi there");
+            
+            var formats = obj.GetFormats();
+            foreach (var f in formats)
+            {
+                if (f == format) continue;
+                newObj.SetData(f, obj.GetData(f));
+            }
+
+            Clipboard.SetDataObject(newObj);
         }
 
         [Command(Description = "Add data to clipboard from url text")]
@@ -77,6 +103,11 @@ namespace uclip
         [STAThread]
         public static void Main(string[] args)
         {
+/*
+            var prog = new Program();
+            CommandLine.AddCommand(
+                "list - list all clipboard formats").WithHandler(Get);
+*/
             CommandLine.Execute(new Program(), args);
 //            var txt = Clipboard.GetText();
 //            Console.WriteLine("Text: " + txt);
