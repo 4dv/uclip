@@ -4,12 +4,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{42761201-31A6-4C41-8E75-086909A9446D}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{80781B7A-CCE9-40C0-B279-45158ACDCDF9}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>uclip</RootNamespace>
-    <AssemblyName>uclip</AssemblyName>
-    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <RootNamespace>uclipw</RootNamespace>
+    <AssemblyName>uclipw</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -35,27 +35,17 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandAttribute.cs" />
-    <Compile Include="CommandLine.cs" />
-    <Compile Include="CommandLineException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StringHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Checkers\Checkers.csproj">
-      <Project>{f24e70c2-71d0-45ff-ab5f-cde97eecedcc}</Project>
-      <Name>Checkers</Name>
+    <ProjectReference Include="..\uclip\uclip.csproj">
+      <Project>{42761201-31a6-4c41-8e75-086909a9446d}</Project>
+      <Name>uclip</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Resources\added.wav">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

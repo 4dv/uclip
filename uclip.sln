@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "uclip", "uclip\uclip.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Checkers", "Checkers\Checkers.csproj", "{F24E70C2-71D0-45FF-AB5F-CDE97EECEDCC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "uclipw", "uclipw\uclipw.csproj", "{80781B7A-CCE9-40C0-B279-45158ACDCDF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{F24E70C2-71D0-45FF-AB5F-CDE97EECEDCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F24E70C2-71D0-45FF-AB5F-CDE97EECEDCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F24E70C2-71D0-45FF-AB5F-CDE97EECEDCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80781B7A-CCE9-40C0-B279-45158ACDCDF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80781B7A-CCE9-40C0-B279-45158ACDCDF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80781B7A-CCE9-40C0-B279-45158ACDCDF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80781B7A-CCE9-40C0-B279-45158ACDCDF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

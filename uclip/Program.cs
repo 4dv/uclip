@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Media;
 using System.Reflection;
 using System.Windows.Forms;
 using Checkers;
@@ -8,7 +10,7 @@ using Microsoft.Win32;
 
 namespace uclip
 {
-    internal class Program
+    public class Program
     {
         public const string PROTOCOL_NAME = "uclip";
         public const string REG_DEFAULT_VALUE = PROTOCOL_NAME + ":copy to clipboard";
@@ -63,6 +65,8 @@ namespace uclip
             text = StringHelper.TrimStart(PROTOCOL_NAME + ":", text);
             text = Uri.UnescapeDataString(text);
             Clipboard.SetData(format, text);
+            using (var soundPlayer = new SoundPlayer("Resources/added.wav"))
+                soundPlayer.PlaySync();
         }
 
         [Command(Description = "Register uclip handler in registry, should be executed with admin rights")]
@@ -79,6 +83,7 @@ namespace uclip
                 if (cmd != null)
                 {
                     cmd.SetValue("", $"{exePath} setFromUri \"%1\"");
+                    Console.WriteLine($"{exePath} was registered as {PROTOCOL_NAME} handler");
                 }
                 else
                 {
@@ -111,11 +116,23 @@ namespace uclip
 */
             try
             {
+                var asm = Assembly.GetEntryAssembly();
+                if (asm != null)
+                {
+                    var exeDir = Path.GetDirectoryName(asm.Location);
+                    Directory.SetCurrentDirectory(exeDir);
+                }
+
                 CommandLine.Execute(new Program(), args);
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in program: " + e);
+                var innerEx = GetDeepestException(e);
+                if (innerEx is UnauthorizedAccessException)
+                {
+                    Console.WriteLine("You don't have enough permissions, try to run as admin: " + innerEx.Message);
+                }
+                else Console.WriteLine("Exception in program: " + e);
             }
 //            var txt = Clipboard.GetText();
 //            Console.WriteLine("Text: " + txt);
@@ -130,6 +147,12 @@ namespace uclip
 //                Console.WriteLine("Formats false: " + string.Join(",", lst));
 //                lst = dataObject.GetFormats(true);
 //                Console.WriteLine("Formats true: " + string.Join(",", lst));
+        }
+
+        private static Exception GetDeepestException(Exception e)
+        {
+            while (e.InnerException != null) e = e.InnerException;
+            return e;
         }
     }
 
