@@ -7,8 +7,54 @@ namespace uclip
 {
     public class CommandLine
     {
+        private Dictionary<string, MethodInfo> commandsDic;
+
+        public IList<Type> SearchInTypes { get; } = new List<Type>();
+        public IList<Type> SearchInAssemblies { get; } = new List<Type>();
+
+        public void FindAllCommands(IEnumerable<Type> inTypes = null, IEnumerable<Assembly> inAssemblies = null)
+        {
+            if (inAssemblies == null)
+                inAssemblies = new[] {Assembly.GetEntryAssembly()};
+            if (inTypes == null)
+                inTypes = inAssemblies.SelectMany(a => a.GetTypes());
+            var commands = inTypes.SelectMany(t => t.GetMethods()
+                .Where(m => m.GetCustomAttribute<CommandAttribute>() != null)).ToList();
+
+            commandsDic = new Dictionary<string, MethodInfo>();
+            foreach (MethodInfo methodInfo in commands)
+            {
+                string name = GetCommandName(methodInfo);
+                if(commandsDic.ContainsKey(name))
+                    Error($"More than one method registered for the same command: 'name'");
+                commandsDic[name] = methodInfo;
+            }
+        }
+
+        private string GetCommandName(MethodInfo methodInfo)
+        {
+            var name = methodInfo.GetCustomAttribute<CommandAttribute>().Name;
+            return string.IsNullOrEmpty(name) ? methodInfo.Name : name;
+        }
+
+/*
+        public void Execute(string[] args, IEnumerable<Type> inTypes = null, IEnumerable<Assembly> inAssemblies = null)
+        {
+            var allCommands = FindAllCommands(inTypes, inAssemblies);
+            FindMatchingCommandAndRun(allCommands, args);
+
+        }
+*/
+
+        public void FindMatchingCommandAndRun(IList<MethodInfo> commands, string[] args)
+        {
+            throw new NotImplementedException();
+        }
+
         public static void Execute<T>(T objectWithCommands, string[] args)
         {
+//            var commands = FindAllCommands(new[] {typeof(T)});
+//            FindMatchingCommandAndRun(commands, args);
             try
             {
                 List<MethodInfo> commandMethods = typeof(T).GetMethods()
@@ -64,9 +110,8 @@ namespace uclip
                 }
                 finally
                 {
-                    num++;                    
+                    num++;
                 }
-
             }).ToArray();
         }
 

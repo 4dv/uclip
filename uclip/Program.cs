@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Media;
 using System.Reflection;
 using System.Windows.Forms;
@@ -31,28 +32,37 @@ namespace uclip
         {
             Clipboard.SetData(format, text);
         }
-        
-        [Command(Description = "Clear data in clipboard, if format specified, clear only specified format")]
-        public void Clear(string format = null)
+
+        [Command(Description = "Clear all or some data in clipboard")]
+        public void Clear(
+            [Option("--only|-o", Description = "Comma separated list of formats, delete only specified formats")]
+            string only = null,
+            [Option("--except|-e", Description =
+                "Comma separated list of formats, delete all formats except specified")]
+            string except = null)
         {
-            if(format == null)
+            if (only == null && except == null)
             {
                 Clipboard.Clear();
                 return;
             }
-            
+
+            var onlyFormats = only?.Split(',');
+            var exceptFormats = except?.Split(',');
+
             IDataObject obj = Clipboard.GetDataObject();
             if (obj == null) return;
-            
+
             DataObject newObj = new DataObject();
-//            newObj.SetData("Text", "Hi there");
-            
+
             var formats = obj.GetFormats();
-            foreach (var f in formats)
+            foreach (var format in formats)
             {
-                if (f == format) continue;
-                var data = obj.GetData(f);
-                newObj.SetData(f, data);
+                if (onlyFormats != null && !onlyFormats.Contains(format)) continue; // leave all, clear only onlyFormat
+                if (exceptFormats != null && exceptFormats.Contains(format))
+                    continue; // leave only exceptFormats, clear others
+                var data = obj.GetData(format);
+                newObj.SetData(format, data);
             }
 
             Clipboard.SetDataObject(newObj, true);
@@ -72,7 +82,8 @@ namespace uclip
         [Command(Description = "Register uclip handler in registry, should be executed with admin rights")]
         public void Register()
         {
-            var exePath = Assembly.GetEntryAssembly().Location; ;
+            var exePath = Assembly.GetEntryAssembly().Location;
+            ;
             Registry.ClassesRoot.CreateSubKey(PROTOCOL_NAME);
             using (var key = Registry.ClassesRoot.OpenSubKey(PROTOCOL_NAME, true))
             {
@@ -109,18 +120,13 @@ namespace uclip
         [STAThread]
         public static void Main(string[] args)
         {
-/*
-            var prog = new Program();
-            CommandLine.AddCommand(
-                "list - list all clipboard formats").WithHandler(Get);
-*/
             try
             {
                 var asm = Assembly.GetEntryAssembly();
                 if (asm != null)
                 {
                     var exeDir = Path.GetDirectoryName(asm.Location);
-                    Directory.SetCurrentDirectory(exeDir);
+                    Directory.SetCurrentDirectory(exeDir); // to find sound files
                 }
 
                 CommandLine.Execute(new Program(), args);
@@ -134,19 +140,6 @@ namespace uclip
                 }
                 else Console.WriteLine("Exception in program: " + e);
             }
-//            var txt = Clipboard.GetText();
-//            Console.WriteLine("Text: " + txt);
-//          
-            // todo if args length < 0
-//            var cmd = args[0].ToLower();
-//            if (cmd == "list")
-//                List
-
-
-//                lst = dataObject.GetFormats(false);
-//                Console.WriteLine("Formats false: " + string.Join(",", lst));
-//                lst = dataObject.GetFormats(true);
-//                Console.WriteLine("Formats true: " + string.Join(",", lst));
         }
 
         private static Exception GetDeepestException(Exception e)
@@ -155,5 +148,4 @@ namespace uclip
             return e;
         }
     }
-
 }
