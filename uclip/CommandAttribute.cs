@@ -6,7 +6,7 @@ namespace uclip
     {
         public string Name { get; }
         public string Description { get; set; }
-        public bool DefaultCommand { get; set; }
+        public bool IsDefault { get; set; }
         public CommandAttribute()
         {
         }

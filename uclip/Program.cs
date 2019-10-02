@@ -108,7 +108,7 @@ namespace uclip
         {
         }
 
-        [Command(DefaultCommand = true, Description =
+        [Command(IsDefault = true, Description =
             "Print clipboard content in specified format. If no format specified" +
             " print text")]
         public void Get(string format = null)
@@ -122,6 +122,10 @@ namespace uclip
         {
             try
             {
+                /*CommandLine cmd = new CommandLine();
+                cmd.PrintHelp();
+                return;*/
+
                 var asm = Assembly.GetEntryAssembly();
                 if (asm != null)
                 {

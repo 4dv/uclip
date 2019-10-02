@@ -2,33 +2,57 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
+using Checkers;
 
 namespace uclip
 {
     public class CommandLine
     {
+        // CommandName => CommandMethod
         private Dictionary<string, MethodInfo> commandsDic;
 
-        public IList<Type> SearchInTypes { get; } = new List<Type>();
-        public IList<Type> SearchInAssemblies { get; } = new List<Type>();
+        public List<Type> SearchInTypes { get; } = new List<Type>();
+        public List<Assembly> SearchInAssemblies { get; } = new List<Assembly>();
 
-        public void FindAllCommands(IEnumerable<Type> inTypes = null, IEnumerable<Assembly> inAssemblies = null)
+        public string HelpStart { get; set; }
+
+        public bool CommandsInCache { get; set; }
+
+        public CommandLine()
         {
-            if (inAssemblies == null)
-                inAssemblies = new[] {Assembly.GetEntryAssembly()};
-            if (inTypes == null)
-                inTypes = inAssemblies.SelectMany(a => a.GetTypes());
-            var commands = inTypes.SelectMany(t => t.GetMethods()
+            Assembly entryAssembly = Assembly.GetEntryAssembly();
+            Assembly commandLineAssembly = typeof(CommandLine).Assembly;
+
+            SearchInAssemblies.Add(commandLineAssembly);
+
+            if(commandLineAssembly != entryAssembly)
+                SearchInAssemblies.Add(entryAssembly);
+        }
+
+        public void FindAllCommands()
+        {
+            if (CommandsInCache)
+                return;
+
+            if (SearchInTypes.Count == 0)
+                SearchInTypes.AddRange(SearchInAssemblies.SelectMany(a => a.GetTypes()));
+
+            var commands = SearchInTypes.SelectMany(t => t.GetMethods()
                 .Where(m => m.GetCustomAttribute<CommandAttribute>() != null)).ToList();
 
             commandsDic = new Dictionary<string, MethodInfo>();
+
             foreach (MethodInfo methodInfo in commands)
             {
                 string name = GetCommandName(methodInfo);
-                if(commandsDic.ContainsKey(name))
-                    Error($"More than one method registered for the same command: 'name'");
+                if(commandsDic.ContainsKey(name) && commandsDic[name].DeclaringType == methodInfo.DeclaringType)
+                    Error($"More than one method registered for the same command: 'name' in the same assembly");
                 commandsDic[name] = methodInfo;
             }
+
+            CommandsInCache = true;
         }
 
         private string GetCommandName(MethodInfo methodInfo)
@@ -37,18 +61,42 @@ namespace uclip
             return string.IsNullOrEmpty(name) ? methodInfo.Name : name;
         }
 
-/*
-        public void Execute(string[] args, IEnumerable<Type> inTypes = null, IEnumerable<Assembly> inAssemblies = null)
+        public void Execute(string[] args)
         {
-            var allCommands = FindAllCommands(inTypes, inAssemblies);
-            FindMatchingCommandAndRun(allCommands, args);
-
+            FindAllCommands();
+            FindMatchingCommandAndRun(args);
         }
-*/
 
-        public void FindMatchingCommandAndRun(IList<MethodInfo> commands, string[] args)
+        [Command("Help", IsDefault = true, Description = "Print help")]
+        public void PrintHelp()
         {
-            throw new NotImplementedException();
+            FindAllCommands();
+
+            Console.WriteLine(HelpStart);
+            Console.WriteLine(GetCommandsDescription());
+        }
+
+        private string GetCommandsDescription()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (KeyValuePair<string,MethodInfo> cmdPair in commandsDic)
+            {
+                var mi = cmdPair.Value;
+                var attr = mi.GetCustomAttribute<CommandAttribute>();
+                Check.NotNull(attr, "attr");
+
+                sb.Append(cmdPair.Key + ": ");
+                if (attr.IsDefault) sb.Append("Default. ");
+                sb.AppendLine(attr.Description);
+            }
+
+            return sb.ToString();
+        }
+
+
+        public void FindMatchingCommandAndRun(string[] args)
+        {
+
         }
 
         public static void Execute<T>(T objectWithCommands, string[] args)
@@ -61,14 +109,14 @@ namespace uclip
                     .Where(m => CustomAttributeExtensions.GetCustomAttribute<CommandAttribute>(m) != null)
                     .ToList();
 
-                if (commandMethods.Count(m => m.GetCustomAttribute<CommandAttribute>().DefaultCommand) > 1)
+                if (commandMethods.Count(m => m.GetCustomAttribute<CommandAttribute>().IsDefault) > 1)
                     Error("Only one command can be marked as default");
 
                 MethodInfo commandMethod;
                 if (args.Length == 0)
                 {
                     commandMethod = commandMethods.FirstOrDefault(m =>
-                        m.GetCustomAttribute<CommandAttribute>().DefaultCommand);
+                        m.GetCustomAttribute<CommandAttribute>().IsDefault);
                 }
                 else
                 {
@@ -89,7 +137,7 @@ namespace uclip
             catch (CommandLineException exception)
             {
                 Console.WriteLine("Invalid command line: " + exception.Message);
-                PrintHelp();
+//                PrintHelp();
             }
         }
 
@@ -118,10 +166,6 @@ namespace uclip
         private static bool IsMethodMatchCommand(MethodInfo mi, string command)
         {
             return mi.Name.ToLowerInvariant() == command.ToLowerInvariant();
-        }
-
-        private static void PrintHelp()
-        {
         }
 
         private static void Error(string message)
