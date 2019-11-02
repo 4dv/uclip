@@ -6,7 +6,9 @@ using System.Linq;
 using System.Media;
 using System.Reflection;
 using System.Windows.Forms;
-using Checkers;
+using CozyCommandLineParser;
+using CozyCommandLineParser.Attributes;
+using CozyCommandLineParser.Checkers;
 using Microsoft.Win32;
 
 namespace uclip
@@ -87,7 +89,7 @@ namespace uclip
             Registry.ClassesRoot.CreateSubKey(PROTOCOL_NAME);
             using (var key = Registry.ClassesRoot.OpenSubKey(PROTOCOL_NAME, true))
             {
-                Check.NotNull(key, $"Can not open registry subkey {PROTOCOL_NAME} for write");
+                Ensure.NotNull(key, $"Can not open registry subkey {PROTOCOL_NAME} for write");
                 key.SetValue("", REG_DEFAULT_VALUE);
                 key.SetValue("URL Protocol", "", RegistryValueKind.String);
                 var cmd = key.CreateSubKey("shell")?.CreateSubKey("open")?.CreateSubKey("command");
@@ -122,10 +124,6 @@ namespace uclip
         {
             try
             {
-                /*CommandLine cmd = new CommandLine();
-                cmd.PrintHelp();
-                return;*/
-
                 var asm = Assembly.GetEntryAssembly();
                 if (asm != null)
                 {
@@ -133,7 +131,11 @@ namespace uclip
                     Directory.SetCurrentDirectory(exeDir); // to find sound files
                 }
 
-                CommandLine.Execute(new Program(), args);
+                new CozyCommandLineParser.CommandLine().Execute(args);
+            }
+            catch (CommandLineException e)
+            {
+                Console.WriteLine("Error in command line: " + e.Message);
             }
             catch (Exception e)
             {
