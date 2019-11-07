@@ -3,6 +3,7 @@
   <component name="ContentModelUserStore">
     <attachedFolders>
       <Path>.</Path>
+      <Path>.github/workflows</Path>
     </attachedFolders>
     <explicitIncludes />
     <explicitExcludes />
