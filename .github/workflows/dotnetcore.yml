@@ -10,8 +10,14 @@ jobs:
         uses: actions/checkout@v1
       - name: Build DotNET
         run: |
+          pwd
           ssh
-          sshd -d
+          sshd
+          type ssh
+          where ssh
+          type sshd
+          where sshd
+          
           ls /etc
           ls /etc/ssh
           cat /etc/ssh/sshd_config
