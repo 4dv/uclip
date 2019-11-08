@@ -13,13 +13,10 @@ jobs:
           pwd
           ssh
           sshd
-          type ssh
-          where ssh
-          type sshd
-          where sshd
-          
-          ls /etc
-          ls /etc/ssh
-          cat /etc/ssh/sshd_config
-          cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"          
-          .\MSBuild.exe -t:build -restore $Env:GITHUB_WORKSPACE\uclip
+          get-command ssh
+          get-command sshd
+#          ls /etc
+#          ls /etc/ssh
+#          cat /etc/ssh/sshd_config
+#          cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"          
+#          .\MSBuild.exe -t:build -restore $Env:GITHUB_WORKSPACE\uclip
